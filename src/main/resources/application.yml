@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: swagger petstore
+
+  profiles:
+    active: {ACTIVE_PROF}
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/db_petstore
+    username: admin
+    password: admin
+    driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
