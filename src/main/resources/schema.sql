@@ -143,3 +143,21 @@ BEGIN
 END;
 ' LANGUAGE plpgsql;
 
+CREATE OR REPLACE PROCEDURE get_pet_by_id(
+    IN pet_id BIGINT,
+    INOUT ref refcursor
+)
+AS '
+BEGIN
+    OPEN ref FOR
+        SELECT
+            p.id AS pet_id,
+            p.name AS pet_name,
+            p.category_id AS category_id,
+            cat.name AS category_name,
+            p.status AS pet_status
+        FROM pets p
+        LEFT JOIN category cat ON cat.id = p.cat
+        WHERE p.id = pet_id;
+END;
+' LANGUAGE plpgsql;

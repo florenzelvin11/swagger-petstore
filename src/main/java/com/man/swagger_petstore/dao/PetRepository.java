@@ -4,10 +4,13 @@ import com.man.swagger_petstore.api.spec.model.Category;
 import com.man.swagger_petstore.api.spec.model.Pet;
 import com.man.swagger_petstore.api.spec.model.Tag;
 import com.man.swagger_petstore.controller.PetController;
+import com.man.swagger_petstore.exceptions.BusinessException;
+import com.man.swagger_petstore.utils.Constants;
 import com.sun.net.httpserver.Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Repository;
@@ -24,7 +27,7 @@ public class PetRepository extends JdbcDaoSupport {
     @Autowired
     public PetRepository(JdbcTemplate jdbcTemplate) { setJdbcTemplate(jdbcTemplate); }
 
-    public Long insertPet(
+    public void insertPet(
             Long pet_id,
             String pet_name,
             Category category,
@@ -34,14 +37,14 @@ public class PetRepository extends JdbcDaoSupport {
     ) {
         LOG.info("Entering insertPet() class PetRepository");
         try (Connection conn = Objects.requireNonNull(getJdbcTemplate().getDataSource()).getConnection()) {
-            try (CallableStatement stmt = conn.prepareCall("CALL insert_pet(?,?,?,?,?,?,?::order_status)")) {
+            try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.INSERT_PET)) {
                 stmt.setLong(1, pet_id);
                 stmt.setString(2, pet_name);
                 stmt.setLong(3, category.getId());
                 stmt.setString(4, category.getName());
 
                 // Converts photoUrls to SQL Arrays
-                Array photoUrlArray = conn.createArrayOf("text", photoUrls.toArray());
+                Array photoUrlArray = conn.createArrayOf(Constants.SQL_Types.TEXT, photoUrls.toArray());
                 stmt.setArray(5, photoUrlArray);
 
                 // Converts tags to PostgrSQL array
@@ -53,15 +56,17 @@ public class PetRepository extends JdbcDaoSupport {
 
                 boolean isResultSet = stmt.execute();
 
-                if (isResultSet) {
+                if (!isResultSet) {
+                    LOG.info("SQL inquiry unsuccessful");
+                } else {
                     LOG.info("SQL inquiry successful");
                 }
             }
         } catch (Exception e) {
-            LOG.info("Something went wrong in the sql query" + e.getMessage());
-//            throw new SQLDataException("Something went wrong in SQL inquriy: " + e.getMessage());
+            LOG.debug("Something went wrong in the sql query{}", e.getMessage());
+            throw new BusinessException(HttpStatus.BAD_REQUEST.value(), Constants.Error.BAD_QUERY, e.getMessage());
         }
-        return pet_id;
+        LOG.info("Exiting insertPet() class PetRepository");
     }
 
     public static class PetTagMapper {
@@ -70,7 +75,7 @@ public class PetRepository extends JdbcDaoSupport {
                     .map(PetTagMapper::toCompositeFormat)
                     .toArray(String[]::new);
 
-            return conn.createArrayOf("tag_name", pgFormattedTags);
+            return conn.createArrayOf(Constants.SQL_Types.TAG_NAME, pgFormattedTags);
         }
 
         public static String toCompositeFormat(Tag tag) {
