@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -26,28 +27,8 @@ public class PetService {
     public void insertPet(Pet pet) {
         LOG.info("Entering addPet() class PetService");
 
-        if (pet.getId() == null
-        || pet.getCategory() == null
-        || pet.getName() == null
-        || pet.getPhotoUrls() == null
-        || pet.getTags() == null
-        || pet.getStatus() == null) {
-            LOG.debug("Throwing Business Error: invalid input");
-            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Request body has null attributes");
-        }
-
-        Category p_cat = pet.getCategory();
-        if (p_cat.getId() == null
-        || p_cat.getName() == null) {
-            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Pet Category has null attributes");
-        }
-
-        pet.getTags().forEach(t -> {
-            if (t.getId() == null
-            || t.getName() == null) {
-                throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Pet Tags is null");
-            }
-        });
+        // Check if pet is valid parameters
+        validatePetInput(pet);
 
         petRepository.insertPet(
                 pet.getId(),
@@ -61,7 +42,73 @@ public class PetService {
         LOG.info("Exiting addPet() class PetService");
     }
 
+    public void updatePet(Pet pet) {
+        LOG.info("Entering updatePet() class PetService");
+
+        validatePetInput(pet);
+
+        petRepository.updatePet(
+                pet.getId(),
+                pet.getName(),
+                pet.getCategory(),
+                pet.getPhotoUrls(),
+                pet.getTags(),
+                pet.getStatus().toString()
+        );
+
+        LOG.info("Exiting updatePet() class PetService");
+    }
+
     public Pet getPetById(Long petId) {
-        return null;
+        LOG.info("Entering getPetById() class PetService");
+
+        Pet pet = petRepository.getPetById(petId);
+
+        LOG.info("Exiting getPetById() class PetService");
+        return pet;
+    }
+
+    public List<Pet> getPetsByTags(List<String> tagNames) {
+        LOG.info("Entering getPetsByTags() class PetService");
+
+        List<Pet> pets = petRepository.getPetByTagName(tagNames);
+
+        LOG.info("Exiting getPetsByTags() class PetService");
+        return pets;
+    }
+
+    public void deletePet(Long petId) {
+        LOG.info("Entering deletePet() class PetService");
+        petRepository.deletePetById(petId);
+        LOG.info("Exiting deletePet() class PetService");
+    }
+
+    private Boolean validatePetInput(Pet pet) {
+        LOG.info("Entering validatePetInput() class PetService");
+        if (pet.getId() == null
+                || pet.getCategory() == null
+                || pet.getName() == null
+                || pet.getPhotoUrls() == null
+                || pet.getTags() == null
+                || pet.getStatus() == null) {
+            LOG.debug("Throwing Business Error: invalid input");
+            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Request body has null attributes");
+        }
+
+        Category p_cat = pet.getCategory();
+        if (p_cat.getId() == null
+                || p_cat.getName() == null) {
+            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Pet Category has null attributes");
+        }
+
+        pet.getTags().forEach(t -> {
+            if (t.getId() == null
+                    || t.getName() == null) {
+                throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Pet Tags is null");
+            }
+        });
+
+        LOG.info("Entering validatePetInput() class PetService");
+        return true;
     }
 }

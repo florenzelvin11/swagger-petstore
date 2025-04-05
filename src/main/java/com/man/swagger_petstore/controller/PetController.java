@@ -33,9 +33,7 @@ public class PetController implements PetApi {
     public ResponseEntity<Void> addPet(Pet body) {
         LOG.info("Entering addPet() class PetController");
 
-        if (body == null) {
-            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Request body should not be null");
-        }
+        validatePetBodyRequest(body);
 
         petService.insertPet(body);
 
@@ -45,17 +43,37 @@ public class PetController implements PetApi {
 
     @Override
     public ResponseEntity<Void> deletePet(Long petId, Optional<String> apiKey) {
-        return null;
+        LOG.info("Entering deletePet() class PetController");
+
+        if (petId == null) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST.value(), Constants.Error.INVALID_INPUT, "Please enter a valid id");
+        }
+
+        petService.deletePet(petId);
+
+        LOG.info("Exiting deletePet() class PetController");
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<List<Pet>> findPetsByStatus(List<String> status) {
+        LOG.info("Entering findPetsByStatus() class PetController");
+
+        LOG.info("Exiting findPetsByStatus() class PetController");
         return null;
     }
 
     @Override
     public ResponseEntity<List<Pet>> findPetsByTags(List<String> tags) {
-        return null;
+        LOG.info("Entering findPetsByTags() class PetController");
+        if (tags == null) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST.value(), Constants.Error.INVALID_INPUT, "Please enter a valid id");
+        }
+
+        List<Pet> pets = petService.getPetsByTags(tags);
+
+        LOG.info("Exiting findPetsByTags() class PetController");
+        return new ResponseEntity<>(pets, HttpStatus.OK);
     }
 
     @Override
@@ -63,18 +81,25 @@ public class PetController implements PetApi {
         LOG.info("Entering getPetById() class PetController");
 
         if (petId == null) {
-            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Request body should not be null");
+            throw new BusinessException(HttpStatus.BAD_REQUEST.value(), Constants.Error.INVALID_INPUT_ID, "Please enter a valid ID");
         }
 
-        petService.getPetById(petId);
+        Pet pet = petService.getPetById(petId);
 
         LOG.info("Exiting getPetById() class PetController");
-        return new ResponseEntity<>(new Pet(), HttpStatus.OK);
+        return new ResponseEntity<>(pet, HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<Void> updatePet(Pet body) {
-        return null;
+        LOG.info("Entering updatePet() class PetController");
+
+        validatePetBodyRequest(body);
+
+        petService.updatePet(body);
+
+        LOG.info("Exiting updatePet() class PetController");
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override
@@ -85,5 +110,11 @@ public class PetController implements PetApi {
     @Override
     public ResponseEntity<ModelApiResponse> uploadFile(Long petId, String additionalMetadata, MultipartFile file) {
         return null;
+    }
+
+    private void validatePetBodyRequest(Pet body) {
+        if (body == null) {
+            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Request body should not be null");
+        }
     }
 }
