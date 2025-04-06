@@ -224,30 +224,36 @@ BEGIN
 END;
 ' LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE get_pet_by_tag_id(
+CREATE OR REPLACE PROCEDURE get_pet_by_tag_name(
     IN t_name TEXT[],
     OUT result REFCURSOR
 )
 AS '
 BEGIN
     OPEN result FOR
+        WITH matched_pets AS (
+            SELECT DISTINCT p.id
+            FROM pets p
+            JOIN pets_tags p_tags ON p_tags.pet_id = p.id
+            JOIN tags t ON t.id = p_tags.tag_id
+            WHERE t.name = ANY(t_name)
+        )
         SELECT
             p.id AS pet_id,
             p.name AS pet_name,
             p.category_id AS category_id,
-            cat.name AS category_name,
+            c.name AS category_name,
             p.status AS pet_status,
             ARRAY_AGG(DISTINCT photo.url) AS pet_urls,
-            ARRAY_AGG(DISTINCT ROW(tag.id, tag.name)::tag_name) AS pet_tag
+            ARRAY_AGG(DISTINCT ROW(t.id, t.name)::tag_name) AS pet_tag
         FROM pets p
-        JOIN category cat ON cat.id = p.category_id
+        JOIN matched_pets mp ON mp.id = p.id         -- only matched pets
+        JOIN category c ON c.id = p.category_id
         JOIN pet_photos photo ON photo.pet_id = p.id
-        JOIN pets_tags ptags ON ptags.pet_id = p.id
-        JOIN tags tag ON tag.id = ptags.tag_id
-        WHERE tag.name IN (
-            SELECT unnest(t_name)
-        )
-        GROUP BY p.id, p.name, p.category_id, cat.name, p.status;
+        JOIN pets_tags pt ON pt.pet_id = p.id
+        JOIN tags t ON t.id = pt.tag_id            -- join all tags (not filtered!)
+        GROUP BY p.id, p.name, p.category_id, c.name, p.status;
+
 END;
 ' LANGUAGE plpgsql;
 

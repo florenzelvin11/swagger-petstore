@@ -68,6 +68,13 @@ public class PetService {
         return pet;
     }
 
+    public List<Pet> getPetsByStatus(List<String> status) {
+        LOG.warn("Entering getPetsByStatus() class PetService");
+        List<Pet> pets = petRepository.getPetByStatusName(status);
+        LOG.warn("Exiting getPetsByStatus() class PetService");
+        return null;
+    }
+
     public List<Pet> getPetsByTags(List<String> tagNames) {
         LOG.info("Entering getPetsByTags() class PetService");
 
@@ -83,7 +90,7 @@ public class PetService {
         LOG.info("Exiting deletePet() class PetService");
     }
 
-    private Boolean validatePetInput(Pet pet) {
+    private void validatePetInput(Pet pet) {
         LOG.info("Entering validatePetInput() class PetService");
         if (pet.getId() == null
                 || pet.getCategory() == null
@@ -109,6 +116,6 @@ public class PetService {
         });
 
         LOG.info("Entering validatePetInput() class PetService");
-        return true;
     }
+
 }

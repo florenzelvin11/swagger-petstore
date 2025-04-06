@@ -59,8 +59,10 @@ public class PetController implements PetApi {
     public ResponseEntity<List<Pet>> findPetsByStatus(List<String> status) {
         LOG.info("Entering findPetsByStatus() class PetController");
 
+        List<Pet> pets = petService.getPetsByStatus(status);
+
         LOG.info("Exiting findPetsByStatus() class PetController");
-        return null;
+        return new ResponseEntity<>(pets, HttpStatus.OK);
     }
 
     @Override

@@ -174,7 +174,7 @@ public class PetRepository {
         List<Pet> pets = new ArrayList<>();
         try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
             conn.setAutoCommit(false);
-            try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.GET_PET_BY_TAG_ID)) {
+            try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.GET_PET_BY_TAG_NAME)) {
                 // IN
                 Array tNames = conn.createArrayOf(Constants.SQL_Types.TEXT, tagNames.toArray());
                 stmt.setArray(Constants.SQL_Query.FIRST_PARAM, tNames);
@@ -196,16 +196,10 @@ public class PetRepository {
             }
             conn.commit();
         } catch (SQLException e) {
-            if (Constants.SQL_Error.NO_ID_FOUND.equals(e.getSQLState())) {
-                LOG.warn("No tag id found with name: {}", tagNames);
-                throw new BusinessException(HttpStatus.NOT_FOUND.value(),
-                        Constants.Error.TAG_NOT_FOUND,
-                        e.getMessage()
-                );
-            } else {
-                LOG.warn("Something went wrong in the SQL query {}",e.getMessage());
-                throw new BusinessException(HttpStatus.BAD_REQUEST.value(), Constants.Error.BAD_QUERY, e.getMessage());
-            }
+            LOG.warn("Something went wrong in the SQL query {}",e.getMessage());
+            throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                    e.getMessage());
         }
         LOG.info("Exiting getPetByTagName() class PetRepository");
         return pets;
@@ -213,7 +207,7 @@ public class PetRepository {
 
     public void deletePetById(Long petId) {
         LOG.info("Entering deletePetById() class PetRepository");
-        try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
+        try (Connection conn = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection()) {
             try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.DELETE_PET_BY_ID)) {
                 // In
                 stmt.setLong(Constants.SQL_Query.FIRST_PARAM, petId);
@@ -228,8 +222,47 @@ public class PetRepository {
                         e.getMessage()
                 );
             }
+        } catch (NullPointerException e) {
+            LOG.warn("The jdbcTemplate.getDateSource() is null");
+            throw new BusinessException(HttpStatus.BAD_GATEWAY.value(),
+                    Constants.Error.PET_NOT_FOUND,
+                    e.getMessage()
+            );
         }
         LOG.info("Exiting deletePetById() class PetRepository");
+    }
+
+    public List<Pet> getPetByStatusName(List<String> status) {
+        LOG.info("Entering getPetByStatusName() class PetRepository");
+
+        List<Pet> pets = null;
+
+        try (Connection conn = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection()) {
+            try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.GET_PET_BY_STATUS)) {
+                // IN
+                Array s_names = conn.createArrayOf(Constants.SQL_Types.TEXT, status.toArray());
+                stmt.setArray(Constants.SQL_Query.FIRST_PARAM, s_names);
+
+                // OUT
+                stmt.registerOutParameter(Constants.SQL_Query.SECOND_PARAM, Types.REF_CURSOR);
+
+                stmt.execute();
+
+                // Map results to Pet Object add to list
+                try (ResultSet rs = (ResultSet) stmt.getObject(Constants.SQL_Query.SECOND_PARAM)) {
+                    int i = 0;
+                    while (rs.next()) {
+                        PetRowMapper petRowMapper = new PetRowMapper();
+                        pets.add(petRowMapper.mapRow(rs, i));
+                    }
+                }
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        LOG.info("Exiting getPetByStatusName() class PetRepository");
+        return pets;
     }
 
     public static class PetRowMapper implements RowMapper<Pet> {
