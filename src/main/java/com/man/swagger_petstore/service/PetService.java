@@ -72,7 +72,7 @@ public class PetService {
         LOG.warn("Entering getPetsByStatus() class PetService");
         List<Pet> pets = petRepository.getPetByStatusName(status);
         LOG.warn("Exiting getPetsByStatus() class PetService");
-        return null;
+        return pets;
     }
 
     public List<Pet> getPetsByTags(List<String> tagNames) {
@@ -118,4 +118,11 @@ public class PetService {
         LOG.info("Entering validatePetInput() class PetService");
     }
 
+    public void updatePetWithForm(Long petId, String name, String status) {
+        LOG.info("Entering updatePetWithForm() class PetService");
+
+        petRepository.updatePetWithForm(petId, name, status);
+
+        LOG.info("Exiting updatePetWithForm() class PetService");
+    }
 }

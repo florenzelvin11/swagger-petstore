@@ -12,12 +12,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
 
+@Validated
 @RestController
 public class PetController implements PetApi {
 
@@ -106,7 +108,19 @@ public class PetController implements PetApi {
 
     @Override
     public ResponseEntity<Void> updatePetWithForm(Long petId, String name, String status) {
-        return null;
+        LOG.warn("Entering updatePetWithForm() class PetController");
+
+        if (petId == null
+        || name == null
+        || status == null) {
+            LOG.warn("Invalid input");
+            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "petId, name or status should not be null");
+        }
+
+        petService.updatePetWithForm(petId, name, status);
+
+        LOG.warn("Exiting updatePetWithForm() class PetController");
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override

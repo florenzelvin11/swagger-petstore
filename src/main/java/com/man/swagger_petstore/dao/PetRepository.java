@@ -14,10 +14,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Repository
 public class PetRepository {
@@ -235,12 +232,13 @@ public class PetRepository {
     public List<Pet> getPetByStatusName(List<String> status) {
         LOG.info("Entering getPetByStatusName() class PetRepository");
 
-        List<Pet> pets = null;
+        List<Pet> pets = new ArrayList<>();
 
         try (Connection conn = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection()) {
+            conn.setAutoCommit(false);
             try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.GET_PET_BY_STATUS)) {
                 // IN
-                Array s_names = conn.createArrayOf(Constants.SQL_Types.TEXT, status.toArray());
+                Array s_names = conn.createArrayOf(Constants.SQL_Types.ORDER_STATUS, status.toArray());
                 stmt.setArray(Constants.SQL_Query.FIRST_PARAM, s_names);
 
                 // OUT
@@ -256,13 +254,62 @@ public class PetRepository {
                         pets.add(petRowMapper.mapRow(rs, i));
                     }
                 }
-
             }
+            conn.commit();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            if (Constants.SQL_Error.INVALID_ENUM_INPUT.equals(e.getSQLState())) {
+                LOG.warn("Invalid order status enum type");
+                throw new BusinessException(HttpStatus.BAD_REQUEST.value(),
+                        Constants.Error.INVALID_INPUT,
+                        e.getMessage());
+            } else {
+                throw new RuntimeException(e);
+            }
+        } catch (Exception e) {
+            LOG.warn("Something went wrong in the SQL query {}",e.getMessage());
+            throw new BusinessException(HttpStatus.BAD_REQUEST.value(), Constants.Error.BAD_QUERY, e.getMessage());
         }
         LOG.info("Exiting getPetByStatusName() class PetRepository");
         return pets;
+    }
+
+    public void updatePetWithForm(Long petId, String name, String status) {
+        LOG.info("Entering updatePetWithForm() class PetRepository");
+
+        try (Connection conn = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection()) {
+            try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.UPDATE_PET_BY_FORM)) {
+                // IN
+                stmt.setLong(Constants.SQL_Query.FIRST_PARAM, petId);
+                stmt.setString(Constants.SQL_Query.SECOND_PARAM, name);
+                stmt.setString(Constants.SQL_Query.THIRD_PARAM, status);
+
+                stmt.execute();
+            }
+        } catch (SQLException e) {
+            if (Constants.SQL_Error.INVALID_ENUM_INPUT.equals(e.getSQLState())) {
+                LOG.warn("Invalid Enum Type inputted");
+                throw new BusinessException(
+                        HttpStatus.METHOD_NOT_ALLOWED.value(),
+                        Constants.Error.INVALID_INPUT,
+                        "Pet Id input is invalid, please enter a valid Pet Id"
+                );
+            } else if (Constants.SQL_Error.NO_ID_FOUND.equals(e.getSQLState())) {
+                LOG.warn("Invalid pet Id {}", petId);
+                throw new BusinessException(
+                        HttpStatus.METHOD_NOT_ALLOWED.value(),
+                        Constants.Error.INVALID_INPUT_ID,
+                        "Not Pet with pet id was found"
+                );
+            }
+        } catch (Exception e) {
+            LOG.warn("Something went wrong {}", e.getMessage());
+            throw new BusinessException(
+                    HttpStatus.BAD_REQUEST.value(),
+                    Constants.Error.BAD_QUERY,
+                    e.getMessage()
+            );
+        }
+        LOG.info("Exiting updatePetWithForm() class PetRepository");
     }
 
     public static class PetRowMapper implements RowMapper<Pet> {
@@ -298,6 +345,8 @@ public class PetRepository {
                 List<Tag> tags = petTagMapper.mapSqlToPetTags(petTagArray);
                 pet.setTags(tags);
             }
+
+            System.out.println(pet.toString());
 
             return pet;
         }

@@ -89,6 +89,7 @@ CREATE TYPE tag_name AS (
     name VARCHAR(50)
 );
 
+DROP PROCEDURE IF EXISTS insert_pet;
 CREATE OR REPLACE PROCEDURE insert_pet(
     pet_id BIGINT,
     pet_name VARCHAR,
@@ -138,6 +139,7 @@ BEGIN
 END;
 ' LANGUAGE plpgsql;
 
+DROP PROCEDURE IF EXISTS update_pet;
 CREATE OR REPLACE PROCEDURE update_pet(
     p_id BIGINT,
     p_name VARCHAR,
@@ -198,7 +200,7 @@ BEGIN
 END;
 ' LANGUAGE plpgsql;
 
-DROP PROCEDURE get_pet_by_id(BIGINT);
+DROP PROCEDURE IF EXISTS get_pet_by_id;
 CREATE OR REPLACE PROCEDURE get_pet_by_id(
     IN p_id BIGINT,
     OUT result REFCURSOR
@@ -224,6 +226,7 @@ BEGIN
 END;
 ' LANGUAGE plpgsql;
 
+DROP PROCEDURE IF EXISTS get_pet_by_tag_name;
 CREATE OR REPLACE PROCEDURE get_pet_by_tag_name(
     IN t_name TEXT[],
     OUT result REFCURSOR
@@ -257,6 +260,33 @@ BEGIN
 END;
 ' LANGUAGE plpgsql;
 
+DROP PROCEDURE IF EXISTS get_pet_by_status;
+CREATE OR REPLACE PROCEDURE get_pet_by_status(
+    IN s_name order_status[],
+    OUT result REFCURSOR
+)
+AS '
+BEGIN
+    OPEN result FOR
+        SELECT
+            p.id AS pet_id,
+            p.name AS pet_name,
+            p.category_id AS category_id,
+            c.name AS category_name,
+            p.status AS pet_status,
+            ARRAY_AGG(DISTINCT photo.url) AS pet_urls,
+            ARRAY_AGG(DISTINCT ROW(t.id, t.name)::tag_name) AS pet_tag
+        FROM pets p
+        JOIN category c ON c.id = p.category_id
+        JOIN pet_photos photo ON photo.pet_id = p.id
+        JOIN pets_tags pt ON pt.pet_id = p.id
+        JOIN tags t ON t.id = pt.tag_id
+        WHERE p.status = ANY(s_name)
+        GROUP BY p.id, p.name, p.category_id, c.name, p.status;
+END;
+' LANGUAGE plpgsql;
+
+DROP PROCEDURE IF EXISTS delete_pet_by_id;
 CREATE OR REPLACE PROCEDURE delete_pet_by_id(
     IN p_id BIGINT
 )
@@ -271,5 +301,29 @@ BEGIN
    -- Delete the pet row
     DELETE FROM pets
     WHERE id = p_id;
+END;
+' LANGUAGE plpgsql;
+
+DROP PROCEDURE IF EXISTS update_pet_with_form;
+CREATE OR REPLACE PROCEDURE update_pet_with_form(
+    IN p_id BIGINT,
+    IN p_name VARCHAR,
+    IN s_status order_status
+)
+AS '
+BEGIN
+    -- Check if pet exists
+    IF NOT EXISTS (SELECT 1 FROM pets WHERE id = p_id) THEN
+        RAISE EXCEPTION $$Pet with Id % does not exist$$, p_id
+            USING ERRCODE = $$P0001$$;
+    END IF;
+
+    -- Update Pet Attribute
+    UPDATE pets
+    SET
+        name = p_name,
+        status = p_status
+    WHERE id = p_id;
+
 END;
 ' LANGUAGE plpgsql;
