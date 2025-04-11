@@ -368,3 +368,47 @@ BEGIN
     WHERE u.username = u_username;
 END;
 ' LANGUAGE plpgsql;
+
+DROP PROCEDURE IF EXISTS update_user;
+CREATE OR REPLACE PROCEDURE update_user(
+    IN u_id BIGINT,
+    IN u_username VARCHAR,
+    IN u_firstname VARCHAR,
+    IN u_lastname VARCHAR,
+    IN u_email VARCHAR,
+    IN u_password VARCHAR,
+    IN u_phone VARCHAR,
+    IN u_userStatus INTEGER
+)
+AS '
+BEGIN
+    -- Update user
+    INSERT INTO users (id, username, firstname, lastname, email, password_hash, phone, user_status)
+    VALUES (u_id, u_username, u_firstname, u_lastname, u_email, u_password, u_phone, u_userStatus)
+    ON CONFLICT (id) DO UPDATE
+    SET
+        username = EXCLUDED.username,
+        firstname = EXCLUDED.firstname,
+        lastname = EXCLUDED.lastname,
+        email = EXCLUDED.email,
+        password_hash = EXCLUDED.password_hash,
+        phone = EXCLUDED.phone,
+        user_status = EXCLUDED.user_status;
+END;
+' LANGUAGE plpgsql;
+
+DROP PROCEDURE IF EXISTS delete_user;
+CREATE OR REPLACE PROCEDURE delete_user(IN u_username VARCHAR)
+AS '
+BEGIN
+    -- Check if user exists
+    IF NOT EXISTS (SELECT 1 FROM users WHERE username = u_username) THEN
+        RAISE EXCEPTION $$User with username % does not exists$$, u_username
+            USING ERRCODE = $$U0001$$;
+    END IF;
+
+    -- Delete User
+    DELETE FROM users
+    WHERE username = u_username;
+END;
+' LANGUAGE plpgsql;

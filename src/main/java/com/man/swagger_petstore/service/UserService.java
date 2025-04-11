@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -52,12 +53,25 @@ public class UserService {
         LOG.info("Exiting createUser() class UserService");
     }
 
+    public void createMultipleUsers(List<User> users) {
+        LOG.info("Entering createMultipleUsers() class UserService");
+
+        users.forEach(this::createUser);
+
+        LOG.info("Exiting createMultipleUsers() class UserService");
+    }
+
     public User getUserByUsername(String username) {
         LOG.info("Entering getUserByUsername() class UserService");
 
         User user = null;
         try {
             user = userRepository.getUserByUsername(username);
+            if (user == null) {
+                throw new BusinessException(HttpStatus.NO_CONTENT.value(),
+                        "Invalid username",
+                        "No user found with username");
+            }
         } catch (Exception e) {
             LOG.warn("Something went wrong with getUserByUsername call");
             throw new BusinessException(HttpStatus.BAD_REQUEST.value(),
@@ -67,5 +81,75 @@ public class UserService {
 
         LOG.info("Exiting getUserByUsername() class UserService");
         return user;
+    }
+
+    public String userLogin(String username, String password) {
+        LOG.info("Entering userLogin() class UserService");
+
+        User user = getUserByUsername(username);
+        if (user == null
+            || !user.getPassword().equals(password)) {
+            LOG.warn("Invalid Username");
+            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(),
+                    Constants.Error.INVALID_USER,
+                    "Please enter the correct Username or Password");
+        }
+
+        LOG.info("Exiting userLogin() class UserService");
+        return user.getUsername();
+    }
+
+    public void updateUser(String username, User body) {
+        LOG.info("Entering updateUser() class UserService");
+
+        User user = getUserByUsername(username);
+        if (user == null) {
+            LOG.warn("Invalid Username");
+            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(),
+                    Constants.Error.INVALID_INPUT,
+                    "Please enter the valid Username");
+        }
+
+        try {
+            userRepository.updateUser(
+                    body.getId(),
+                    body.getUsername(),
+                    body.getFirstName(),
+                    body.getLastName(),
+                    body.getEmail(),
+                    body.getPassword(),
+                    body.getPhone(),
+                    body.getUserStatus()
+            );
+        } catch (SQLException e) {
+            LOG.warn("Something went wrong with updateUser call");
+            throw new BusinessException(HttpStatus.BAD_REQUEST.value(),
+                    Constants.Error.BAD_QUERY,
+                    e.getMessage());
+        }
+
+        LOG.info("Exiting updateUser() class UserService");
+    }
+
+    public void deleteUser(String username) {
+        LOG.info("Entering deleteUser() class UserService");
+        User user = getUserByUsername(username);
+        if (user == null) {
+            LOG.warn("Invalid Username");
+            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(),
+                    Constants.Error.INVALID_INPUT,
+                    "Please enter the valid Username");
+        }
+
+        try {
+            userRepository.deleteUser(username);
+        } catch (SQLException e) {
+            LOG.warn("Something went wrong with updateUser call");
+            throw new BusinessException(HttpStatus.BAD_REQUEST.value(),
+                    Constants.Error.BAD_QUERY,
+                    e.getMessage());
+        }
+
+        LOG.info("Exiting deleteUser() class UserService");
     }
 }

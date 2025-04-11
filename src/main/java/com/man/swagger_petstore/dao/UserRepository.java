@@ -74,6 +74,48 @@ public class UserRepository {
         return null;
     }
 
+    public void updateUser(
+            Long userId,
+            String username,
+            String firstname,
+            String lastname,
+            String email,
+            String password,
+            String phone,
+            Integer userStatus
+    ) throws SQLException {
+        LOG.info("Entering updateUser() class UserRepository");
+        try (Connection conn = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection()) {
+            try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.UPDATE_USER)) {
+                // IN
+                stmt.setLong(Constants.SQL_Query.FIRST_PARAM, userId);
+                stmt.setString(Constants.SQL_Query.SECOND_PARAM, username);
+                stmt.setString(Constants.SQL_Query.THIRD_PARAM, firstname);
+                stmt.setString(Constants.SQL_Query.FOURTH_PARAM, lastname);
+                stmt.setString(Constants.SQL_Query.FIFTH_PARAM, email);
+                stmt.setString(Constants.SQL_Query.SIXTH_PARAM, password);
+                stmt.setString(Constants.SQL_Query.SEVENTH_PARAM, phone);
+                stmt.setInt(Constants.SQL_Query.EIGHTH_PARAM, userStatus);
+
+                stmt.execute();
+            }
+        }
+        LOG.info("Exiting updateUser() class UserRepository");
+    }
+
+    public void deleteUser(String username) throws SQLException {
+        LOG.info("Entering deleteUser() class UserRepository");
+        try (Connection conn = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection()) {
+            try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.DELETE_USER)) {
+                // IN
+                stmt.setString(Constants.SQL_Query.FIRST_PARAM, username);
+
+                stmt.execute();
+            }
+        }
+        LOG.info("Exiting deleteUser() class UserRepository");
+    }
+
     public static class UserMapper implements RowMapper<User> {
 
         @Override

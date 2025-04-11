@@ -422,28 +422,6 @@ paths:
       responses:
         default:
           description: "successful operation"
-  /user/createWithList:
-    post:
-      tags:
-        - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithListInput"
-      produces:
-
-        - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "List of user object"
-          required: true
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
   /user/login:
     get:
       tags:

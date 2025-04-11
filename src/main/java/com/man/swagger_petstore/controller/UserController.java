@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Validated
@@ -33,22 +34,31 @@ public class UserController implements UserApi {
         userService.createUser(body);
 
         LOG.info("Exiting createUser() class UserController");
-        return null;
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<Void> createUsersWithArrayInput(List<User> body) {
-        return null;
-    }
+        LOG.info("Entering createUsersWithArrayInput() class UserController");
+        if (body == null) {
+            LOG.warn("Invalid Input");
+            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(),
+                    "Invalid request",
+                    "Please enter a valid Request body");
+        }
 
-    @Override
-    public ResponseEntity<Void> createUsersWithListInput(List<User> body) {
-        return null;
+        userService.createMultipleUsers(body);
+
+        LOG.info("Exiting createUsersWithArrayInput() class UserController");
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<Void> deleteUser(String username) {
-        return null;
+        LOG.info("Entering deleteUser() class UserController");
+        userService.deleteUser(username);
+        LOG.info("Exiting deleteUser() class UserController");
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override
@@ -70,7 +80,19 @@ public class UserController implements UserApi {
 
     @Override
     public ResponseEntity<String> loginUser(String username, String password) {
-        return null;
+        LOG.info("Entering loginUser() class UserController");
+        if (username == null
+            || password == null) {
+            LOG.warn("Invalid inputs");
+            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(),
+                    "Invalid username/password supplied",
+                    "Please enter correct username/password");
+        }
+
+        String res = userService.userLogin(username, password);
+
+        LOG.info("Exiting loginUser() class UserController");
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @Override
@@ -80,6 +102,16 @@ public class UserController implements UserApi {
 
     @Override
     public ResponseEntity<Void> updateUser(String username, User body) {
+        LOG.info("Entering updateUser() class UserController");
+        if (username == null) {
+            LOG.warn("Invalid inputs");
+            throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Request body should not be null");
+        }
+        validateUserBodyRequest(body);
+
+        userService.updateUser(username, body);
+
+        LOG.info("Exiting updateUser() class UserController");
         return null;
     }
 
@@ -94,6 +126,7 @@ public class UserController implements UserApi {
                 || body.getPhone() == null
                 || body.getUserStatus() == null
         ) {
+            LOG.warn("Invalid inputs");
             throw new BusinessException(HttpStatus.METHOD_NOT_ALLOWED.value(), Constants.Error.INVALID_INPUT, "Request body should not be null");
         }
     }

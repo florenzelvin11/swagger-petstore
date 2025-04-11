@@ -13,6 +13,8 @@ public class Constants {
         public static final String UPDATE_PET_BY_FORM = "CALL update_pet_by_form(?,?,?::order_status)";
         public static final String INSERT_USER = "CALL insert_user(?,?,?,?,?,?,?,?)";
         public static final String GET_USER_BY_USERNAME = "CALL get_user_by_username(?,?)";
+        public static final String UPDATE_USER = "CALL update_user(?,?,?,?,?,?,?,?)";
+        public static final String DELETE_USER = "CALL delete_user(?)";
 
         // Parameter Counts
         public static final int FIRST_PARAM = 1;
@@ -40,6 +42,7 @@ public class Constants {
         public static final String DUPLICATE_ID = "Duplicate Id";
         public static final String PET_NOT_FOUND = "Pet not found";
         public static final String TAG_NOT_FOUND = "Tag not found";
+        public static final String INVALID_USER = "Invalid username/password supplied";
     }
 
     public static class SQL_Error {
