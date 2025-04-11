@@ -11,6 +11,8 @@ public class Constants {
         public static final String GET_PET_BY_TAG_NAME = "CALL get_pet_by_tag_name(?, ?)";
         public static final String GET_PET_BY_STATUS = "CALL get_pet_by_status(?, ?)";
         public static final String UPDATE_PET_BY_FORM = "CALL update_pet_by_form(?,?,?::order_status)";
+        public static final String INSERT_USER = "CALL insert_user(?,?,?,?,?,?,?,?)";
+        public static final String GET_USER_BY_USERNAME = "CALL get_user_by_username(?,?)";
 
         // Parameter Counts
         public static final int FIRST_PARAM = 1;

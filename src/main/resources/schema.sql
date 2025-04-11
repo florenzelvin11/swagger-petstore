@@ -327,3 +327,44 @@ BEGIN
 
 END;
 ' LANGUAGE plpgsql;
+
+DROP PROCEDURE IF EXISTS insert_user;
+CREATE OR REPLACE PROCEDURE insert_user(
+    IN u_id BIGINT,
+    IN u_username VARCHAR,
+    IN u_firstname VARCHAR,
+    IN u_lastname VARCHAR,
+    IN u_email VARCHAR,
+    IN u_password VARCHAR,
+    IN u_phone VARCHAR,
+    IN u_userStatus INTEGER
+)
+AS '
+BEGIN
+    -- Insert to users
+    INSERT INTO users (id, username, firstname, lastname, email, password_hash, phone, user_status)
+    VALUES (u_id, u_username, u_firstname, u_lastname, u_email, u_password, u_phone, u_userStatus);
+END;
+' LANGUAGE plpgsql;
+
+DROP PROCEDURE IF EXISTS get_user_by_username;
+CREATE OR REPLACE PROCEDURE get_user_by_username(
+    IN u_username VARCHAR,
+    OUT result REFCURSOR
+)
+AS '
+BEGIN
+    OPEN result FOR
+    SELECT
+     u.id AS user_id,
+     u.username AS user_username,
+     u.firstname AS user_firstname,
+     u.lastname AS user_lastname,
+     u.email AS user_email,
+     u.password_hash AS user_password,
+     u.phone AS user_phone,
+     u.user_status AS user_status
+    FROM users u
+    WHERE u.username = u_username;
+END;
+' LANGUAGE plpgsql;

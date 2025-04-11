@@ -123,6 +123,7 @@ public class PetController implements PetApi {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    // TODO
     @Override
     public ResponseEntity<ModelApiResponse> uploadFile(Long petId, String additionalMetadata, MultipartFile file) {
         return null;
