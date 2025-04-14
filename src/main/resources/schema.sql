@@ -7,14 +7,16 @@ DROP TABLE IF EXISTS pets_tags CASCADE;
 DROP TABLE IF EXISTS pet_photos CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TYPE IF EXISTS order_status CASCADE;
+DROP TYPE IF EXISTS pet_status CASCADE;
 
-CREATE TYPE order_status AS ENUM ('available', 'pending', 'sold');
+CREATE TYPE pet_status AS ENUM ('available', 'pending', 'sold');
+CREATE TYPE order_status AS ENUM ('placed', 'approved', 'delivered');
 
 CREATE TABLE orders (
     id BIGINT PRIMARY KEY,
     pet_id BIGINT NOT NULL,
     quantity INTEGER DEFAULT 0 CHECK (quantity >= 0),
-    ship_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ship_date TIMESTAMPTZ DEFAULT NOW(),
     status order_status,
     complete BOOLEAN DEFAULT FALSE
 );
@@ -32,7 +34,7 @@ CREATE TABLE tags (
 CREATE TABLE pets (
     id BIGINT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
-    status order_status NOT NULL DEFAULT 'available',
+    status pet_status NOT NULL DEFAULT 'available',
     category_id BIGINT, -- Type Category
 
     -- tags [tag] list of tags
@@ -89,6 +91,8 @@ CREATE TYPE tag_name AS (
     name VARCHAR(50)
 );
 
+-- PETS PROCEDURES --
+
 DROP PROCEDURE IF EXISTS insert_pet;
 CREATE OR REPLACE PROCEDURE insert_pet(
     pet_id BIGINT,
@@ -97,7 +101,7 @@ CREATE OR REPLACE PROCEDURE insert_pet(
     category_name VARCHAR,
     photo_urls TEXT[],
     tags tag_name[],
-    status order_status
+    status pet_status
 )
 AS '
 DECLARE
@@ -147,7 +151,7 @@ CREATE OR REPLACE PROCEDURE update_pet(
     cat_name VARCHAR,
     photo_urls TEXT[],
     tags tag_name[],
-    p_status order_status
+    p_status pet_status
 )
 AS '
 BEGIN
@@ -262,7 +266,7 @@ END;
 
 DROP PROCEDURE IF EXISTS get_pet_by_status;
 CREATE OR REPLACE PROCEDURE get_pet_by_status(
-    IN s_name order_status[],
+    IN s_name pet_status[],
     OUT result REFCURSOR
 )
 AS '
@@ -308,7 +312,7 @@ DROP PROCEDURE IF EXISTS update_pet_with_form;
 CREATE OR REPLACE PROCEDURE update_pet_with_form(
     IN p_id BIGINT,
     IN p_name VARCHAR,
-    IN s_status order_status
+    IN p_status pet_status
 )
 AS '
 BEGIN
@@ -327,6 +331,8 @@ BEGIN
 
 END;
 ' LANGUAGE plpgsql;
+
+-- USER PROCEDURE --
 
 DROP PROCEDURE IF EXISTS insert_user;
 CREATE OR REPLACE PROCEDURE insert_user(
@@ -410,5 +416,57 @@ BEGIN
     -- Delete User
     DELETE FROM users
     WHERE username = u_username;
+END;
+' LANGUAGE plpgsql;
+
+-- STORE PROCEDURE --
+
+DROP PROCEDURE IF EXISTS get_inventory;
+CREATE OR REPLACE PROCEDURE get_inventory(OUT result REFCURSOR)
+AS '
+BEGIN
+   OPEN result FOR
+   SELECT
+    p.status AS pet_status,
+    COUNT(*) AS pet_status_count
+   FROM pets p
+   GROUP BY p.status;
+END;
+' LANGUAGE plpgsql;
+
+DROP PROCEDURE IF EXISTS add_order;
+CREATE OR REPLACE PROCEDURE add_order(
+    IN o_id BIGINT,
+    IN o_pet_id BIGINT,
+    IN o_quantity INTEGER,
+    IN o_ship_date TIMESTAMPTZ,
+    IN o_status order_status,
+    IN o_complete BOOLEAN
+)
+AS '
+BEGIN
+    -- Add new order but throws error if order id already exists
+    INSERT INTO orders (id, pet_id, quantity, ship_date, status, complete)
+    VALUES (o_id, o_pet_id, o_quantity, o_ship_date, o_status, o_complete);
+END;
+' LANGUAGE plpgsql;
+
+DROP PROCEDURE IF EXISTS get_order;
+CREATE OR REPLACE PROCEDURE get_order(
+    IN o_id BIGINT,
+    OUT result REFCURSOR
+)
+AS '
+BEGIN
+    OPEN result FOR
+    SELECT
+        o.id AS order_id,
+        o.pet_id AS order_pet_id,
+        o.quantity AS order_quantity,
+        o.ship_date AS order_ship_date,
+        o.status AS order_status,
+        o.complete AS order_complete
+    FROM orders o
+    WHERE o.id = o_id;
 END;
 ' LANGUAGE plpgsql;

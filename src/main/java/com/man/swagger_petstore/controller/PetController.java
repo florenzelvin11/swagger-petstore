@@ -108,7 +108,7 @@ public class PetController implements PetApi {
 
     @Override
     public ResponseEntity<Void> updatePetWithForm(Long petId, String name, String status) {
-        LOG.warn("Entering updatePetWithForm() class PetController");
+        LOG.info("Entering updatePetWithForm() class PetController");
 
         if (petId == null
         || name == null
@@ -119,7 +119,7 @@ public class PetController implements PetApi {
 
         petService.updatePetWithForm(petId, name, status);
 
-        LOG.warn("Exiting updatePetWithForm() class PetController");
+        LOG.info("Exiting updatePetWithForm() class PetController");
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

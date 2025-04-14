@@ -238,7 +238,7 @@ public class PetRepository {
             conn.setAutoCommit(false);
             try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.GET_PET_BY_STATUS)) {
                 // IN
-                Array s_names = conn.createArrayOf(Constants.SQL_Types.ORDER_STATUS, status.toArray());
+                Array s_names = conn.createArrayOf(Constants.SQL_Types.PET_STATUS, status.toArray());
                 stmt.setArray(Constants.SQL_Query.FIRST_PARAM, s_names);
 
                 // OUT
@@ -277,7 +277,7 @@ public class PetRepository {
         LOG.info("Entering updatePetWithForm() class PetRepository");
 
         try (Connection conn = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection()) {
-            try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.UPDATE_PET_BY_FORM)) {
+            try (CallableStatement stmt = conn.prepareCall(Constants.SQL_Query.UPDATE_PET_WITH_FORM)) {
                 // IN
                 stmt.setLong(Constants.SQL_Query.FIRST_PARAM, petId);
                 stmt.setString(Constants.SQL_Query.SECOND_PARAM, name);

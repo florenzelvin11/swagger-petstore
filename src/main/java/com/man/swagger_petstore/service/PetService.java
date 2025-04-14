@@ -90,6 +90,16 @@ public class PetService {
         LOG.info("Exiting deletePet() class PetService");
     }
 
+    public void updatePetWithForm(Long petId, String name, String status) {
+        LOG.info("Entering updatePetWithForm() class PetService");
+
+        System.out.println("PetId: " + petId + " New name: " + name + " New status: " + status);
+
+        petRepository.updatePetWithForm(petId, name, status);
+
+        LOG.info("Exiting updatePetWithForm() class PetService");
+    }
+
     private void validatePetInput(Pet pet) {
         LOG.info("Entering validatePetInput() class PetService");
         if (pet.getId() == null
@@ -118,11 +128,4 @@ public class PetService {
         LOG.info("Entering validatePetInput() class PetService");
     }
 
-    public void updatePetWithForm(Long petId, String name, String status) {
-        LOG.info("Entering updatePetWithForm() class PetService");
-
-        petRepository.updatePetWithForm(petId, name, status);
-
-        LOG.info("Exiting updatePetWithForm() class PetService");
-    }
 }

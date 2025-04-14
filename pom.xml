@@ -34,10 +34,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jdbc</artifactId>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.boot</groupId>-->
-<!--			<artifactId>spring-boot-starter-data-jpa</artifactId>-->
-<!--		</dependency>-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
@@ -53,7 +49,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.7.0</version>
+			<version>42.7.2</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -105,44 +101,6 @@
 
 	<build>
 		<plugins>
-			<!-- swagger codegen -->
-<!--			<plugin>-->
-<!--				<groupId>org.openapitools</groupId>-->
-<!--				<artifactId>openapi-generator-maven-plugin</artifactId>-->
-<!--				<version>7.5.0</version> &lt;!&ndash; Use latest version &ndash;&gt;-->
-<!--				<executions>-->
-<!--					<execution>-->
-<!--						<id>Generate sources for Swagger Petstore API</id>-->
-<!--						<goals>-->
-<!--							<goal>generate</goal>-->
-<!--						</goals>-->
-<!--						<configuration>-->
-<!--							<inputSpec>${project.basedir}/openapi.yaml</inputSpec>-->
-<!--							<generatorName>spring</generatorName>-->
-<!--							<output>${project.build.directory}/generated-sources</output>-->
-<!--							<apiPackage>com.man.swagger_petstore.api.spec.handler</apiPackage>-->
-<!--							<modelPackage>com.man.swagger_petstore.api.spec.model</modelPackage>-->
-<!--							<invokerPackage>com.man.swagger_petstore.api.spec</invokerPackage>-->
-
-<!--							<configOptions>-->
-<!--								<sourceFolder>swagger</sourceFolder>-->
-<!--								<interfaceOnly>true</interfaceOnly>-->
-<!--								<useTags>true</useTags>-->
-<!--								<useOptional>true</useOptional>-->
-<!--								<serializableModel>true</serializableModel>-->
-<!--								<dateLibrary>java8</dateLibrary>-->
-<!--								<useSpringBoot3>true</useSpringBoot3>-->
-<!--								<jakarta>true</jakarta>-->
-<!--							</configOptions>-->
-<!--							<additionalProperties>-->
-<!--								<java.version>21</java.version>-->
-<!--								<library>spring-boot</library>-->
-<!--							</additionalProperties>-->
-<!--						</configuration>-->
-<!--					</execution>-->
-<!--				</executions>-->
-<!--			</plugin>-->
-
 			<plugin>
 				<groupId>io.swagger.codegen.v3</groupId>
 				<artifactId>swagger-codegen-maven-plugin</artifactId>
@@ -167,6 +125,7 @@
 								<useTags>true</useTags>
 								<useOptional>true</useOptional>
 								<serializableModel>true</serializableModel>
+								<java8>true</java8>
 								<jakarta>true</jakarta>
 							</configOptions>
 							<additionalProperties>

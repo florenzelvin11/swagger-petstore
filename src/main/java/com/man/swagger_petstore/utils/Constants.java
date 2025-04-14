@@ -4,17 +4,20 @@ public class Constants {
 
     public static class SQL_Query {
         // Queries
-        public static final String INSERT_PET = "CALL insert_pet(?,?,?,?,?,?,?::order_status)";
+        public static final String INSERT_PET = "CALL insert_pet(?,?,?,?,?,?,?::pet_status)";
         public static final String GET_PET_BY_ID = "CALL get_pet_by_id(?, ?)";
-        public static final String UPDATE_PET = "CALL update_pet(?,?,?,?,?,?,?::order_status)";
+        public static final String UPDATE_PET = "CALL update_pet(?,?,?,?,?,?,?::pet_status)";
         public static final String DELETE_PET_BY_ID = "CALL delete_pet_by_id(?)";
         public static final String GET_PET_BY_TAG_NAME = "CALL get_pet_by_tag_name(?, ?)";
         public static final String GET_PET_BY_STATUS = "CALL get_pet_by_status(?, ?)";
-        public static final String UPDATE_PET_BY_FORM = "CALL update_pet_by_form(?,?,?::order_status)";
+        public static final String UPDATE_PET_WITH_FORM = "CALL update_pet_with_form(?,?,?::pet_status)";
         public static final String INSERT_USER = "CALL insert_user(?,?,?,?,?,?,?,?)";
         public static final String GET_USER_BY_USERNAME = "CALL get_user_by_username(?,?)";
         public static final String UPDATE_USER = "CALL update_user(?,?,?,?,?,?,?,?)";
         public static final String DELETE_USER = "CALL delete_user(?)";
+        public static final String GET_INVENTORY = "CALL get_inventory(?)";
+        public static final String ADD_ORDER = "CALL add_order(?,?,?,?,?::order_status,?)";
+        public static final String GET_ORDER = "CALL get_order(?,?)";
 
         // Parameter Counts
         public static final int FIRST_PARAM = 1;
@@ -33,6 +36,7 @@ public class Constants {
         public static final String TEXT = "text";
         public static final String TAG_NAME = "tag_name";
         public static final String ORDER_STATUS = "order_status";
+        public static final String PET_STATUS = "pet_status";
     }
 
     public static class Error {
